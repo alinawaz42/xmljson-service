@@ -25,6 +25,31 @@ RSpec.describe 'Services' do
         end
       end
     end
+
+    context 'xml is provided' do
+      context 'valid xml' do
+        let(:str) { '<person><id>1</id><name>John Doe</name></person>' }
+        let(:res) { { person: { id: '1', name: 'John Doe' } }.with_indifferent_access }
+
+        it 'converts to JSON successfully' do
+          post '/api/v1/convert', params: { xml: str }
+
+          expect(response).to be_ok
+          expect(json).to match(res)
+        end
+      end
+
+      context 'invalid xml' do
+        let(:str) { '<id>1</id><x>Test</x>' }
+
+        it 'renders invalid XML error' do
+          post '/api/v1/convert', params: { xml: str }
+
+          expect(response.code).to eq('422')
+          expect(json['errors'][0]).to eq('Invalid XML! Unable to parse')
+        end
+      end
+    end
   end
 
   def xml_response
